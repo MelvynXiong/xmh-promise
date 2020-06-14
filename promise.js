@@ -68,41 +68,61 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
   const promise2 = new Promise((resolve, reject) => {
     if (this.state === PROMISE_STATUS.PENDING) {
       if (typeof onFulfilled === "function") {
-        this.fulfilledHandler.push(onFulfilled);
+        this.fulfilledHandler.push(() => {
+          setTimeout(() => {
+            try {
+              let x = onFulfilled(this.val);
+              resolvePromise(promise2, x, resolve, reject);
+            } catch (e) {
+              reject(e);
+            }
+          }, 0);
+        });
       }
 
       if (typeof onRejected === "function") {
-        this.rejectHandler.push(onRejected);
+        this.rejectHandler.push(() => {
+          setTimeout(() => {
+            try {
+              let x = onR(this.val);
+              resolvePromise(promise2, x, resolve, reject);
+            } catch (e) {
+              reject(e);
+            }
+          }, 0);
+        });
       }
     }
 
     // onFulfilled, onRejected 是可选参数，如果不是函数就忽略
-    if (
-      this.state === PROMISE_STATUS.FULFILLED &&
-      typeof onFulfilled === "function"
-    ) {
-      setTimeout(function () {
-        try {
-          let x = onFulfilled(this.val);
-          resolvePromise(promise2, x, resolve, reject);
-        } catch (e) {
-          reject(e);
-        }
-      }, 0);
+    if (this.state === PROMISE_STATUS.FULFILLED) {
+      if (typeof onFulfilled === "function") {
+        setTimeout(() => {
+          try {
+            let x = onFulfilled(this.val);
+            resolvePromise(promise2, x, resolve, reject);
+          } catch (e) {
+            reject(e);
+          }
+        }, 0);
+      } else {
+        resolve(this.val);
+      }
     }
 
-    if (
-      this.state === PROMISE_STATUS.REJECTED &&
-      typeof onRejected === "function"
-    ) {
-      setTimeout(function () {
-        try {
-          let x = onRejected(this.val);
-          resolvePromise(promise2, x, resolve, reject);
-        } catch (e) {
-          reject(e);
-        }
-      }, 0);
+    if (this.state === PROMISE_STATUS.REJECTED) {
+      if (typeof onRejected === "function") {
+        setTimeout(() => {
+          try {
+            let x = onRejected(this.val);
+            resolvePromise(promise2, x, resolve, reject);
+          } catch (e) {
+            reject(e);
+          }
+        }, 0);
+      } else {
+        reject(this.val);
+      }
     }
   });
 
@@ -114,11 +134,12 @@ let p = new Promise((resolve, reject) => {
 });
 
 p.then((data) => 2)
-  .then()
-  .then()
+  .then((data) => 3)
+  .then((data) => 4)
   .then((data) => {
     console.log(data); //2
   });
+console.log(1);
 
 // p.then((data) => {
 //   return 2; //返回一个普通值
