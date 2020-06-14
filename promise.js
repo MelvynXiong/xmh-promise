@@ -7,11 +7,13 @@ const PROMISE_STATUS = {
 function Promise(fn) {
   this.state = PROMISE_STATUS.PENDING;
   this.val = null;
-  this.handler = [];
+  this.fulfilledHandler = [];
+  this.rejectHandler = [];
 
   const fulfilled = (val) => {
     if (this.state === PROMISE_STATUS.PENDING) {
       this.val = val;
+      this.fulfilledHandler.forEach((handler) => handler(val));
       this.state = PROMISE_STATUS.FULFILLED;
     }
   };
@@ -19,6 +21,7 @@ function Promise(fn) {
   const reject = (reason) => {
     if (this.state === PROMISE_STATUS.PENDING) {
       this.val = reason;
+      this.rejectHandler.forEach((handler) => handler(reason));
       this.state = PROMISE_STATUS.REJECTED;
     }
   };
@@ -28,7 +31,15 @@ function Promise(fn) {
 
 Promise.prototype.then = function (onFulfilled, onRejected) {
   let res = null;
+
   if (this.state === PROMISE_STATUS.PENDING) {
+    if (typeof onFulfilled === "function") {
+      this.fulfilledHandler.push(onFulfilled);
+    }
+
+    if (typeof onRejected === "function") {
+      this.rejectHandler.push(onRejected);
+    }
   }
 
   // onFulfilled, onRejected 是可选参数，如果不是函数就忽略
@@ -50,9 +61,11 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
 
 const p1 = new Promise((resolve, reject) => {
   console.log(1);
-  resolve(2);
+  setTimeout(function () {
+    resolve(2);
+  }, 100);
 });
 
 p1.then((val) => {
-  console.log(val + 1);
+  console.log(val + 2);
 });
