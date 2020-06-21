@@ -44,20 +44,34 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
     }
 
     if (x !== null && (typeof x === "object" || typeof x === "function")) {
+      let called = false;
       try {
-        let then = x.then;
+        const then = x.then;
         if (typeof then === "function") {
           then.call(
             x,
             //递归调用，传入y若是Promise对象，继续循环
-            (y) => resolvePromise(promise2, y, resolve, reject),
-            (r) => reject(r)
+            (y) => {
+              if (!called) {
+                resolvePromise(promise2, y, resolve, reject);
+                called = true;
+              }
+            },
+            (r) => {
+              if (!called) {
+                reject(r);
+                called = true;
+              }
+            }
           );
         } else {
           resolve(x);
         }
       } catch (e) {
-        reject(e);
+        if (!called) {
+          reject(e);
+          called = true;
+        }
       }
     } else {
       // x 为普通值
@@ -71,7 +85,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
         this.fulfilledHandler.push(() => {
           setTimeout(() => {
             try {
-              let x = onFulfilled(this.val);
+              const x = onFulfilled(this.val);
               resolvePromise(promise2, x, resolve, reject);
             } catch (e) {
               reject(e);
@@ -90,7 +104,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
         this.rejectHandler.push(() => {
           setTimeout(() => {
             try {
-              let x = onRejected(this.val);
+              const x = onRejected(this.val);
               resolvePromise(promise2, x, resolve, reject);
             } catch (e) {
               reject(e);
@@ -111,7 +125,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
       if (typeof onFulfilled === "function") {
         setTimeout(() => {
           try {
-            let x = onFulfilled(this.val);
+            const x = onFulfilled(this.val);
             resolvePromise(promise2, x, resolve, reject);
           } catch (e) {
             reject(e);
@@ -126,7 +140,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
       if (typeof onRejected === "function") {
         setTimeout(() => {
           try {
-            let x = onRejected(this.val);
+            const x = onRejected(this.val);
             resolvePromise(promise2, x, resolve, reject);
           } catch (e) {
             reject(e);
@@ -141,11 +155,17 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
   return promise2;
 };
 
-let p = new Promise((resolve, reject) => {
+const p = new Promise((resolve, reject) => {
   resolve(1);
 });
 
-p.then((data) => 2)
+p.then((data) => ({
+  then: function (resolve, reject) {
+    setTimeout(function () {
+      resolve("xiong");
+    });
+  },
+}))
   .then()
   .then()
   .then((data) => {
