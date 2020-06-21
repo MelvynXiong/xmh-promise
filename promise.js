@@ -78,17 +78,29 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
             }
           }, 0);
         });
+      } else {
+        this.fulfilledHandler.push(() => {
+          setTimeout(() => {
+            resolve(this.val);
+          }, 0);
+        });
       }
 
       if (typeof onRejected === "function") {
         this.rejectHandler.push(() => {
           setTimeout(() => {
             try {
-              let x = onR(this.val);
+              let x = onRejected(this.val);
               resolvePromise(promise2, x, resolve, reject);
             } catch (e) {
               reject(e);
             }
+          }, 0);
+        });
+      } else {
+        this.rejectHandler.push(() => {
+          setTimeout(() => {
+            reject(this.val);
           }, 0);
         });
       }
@@ -134,8 +146,8 @@ let p = new Promise((resolve, reject) => {
 });
 
 p.then((data) => 2)
-  .then((data) => 3)
-  .then((data) => 4)
+  .then()
+  .then()
   .then((data) => {
     console.log(data); //2
   });
