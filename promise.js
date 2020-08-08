@@ -156,6 +156,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
 };
 
 module.exports = {
+  Promise,
   resolved: function (value) {
     return new Promise(function (resolve) {
       resolve(value);
