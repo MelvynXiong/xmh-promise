@@ -155,30 +155,6 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
   return promise2;
 };
 
-const p = new Promise((resolve, reject) => {
-  resolve(1);
-});
-
-p.then((data) => ({
-  then: function (resolve, reject) {
-    setTimeout(function () {
-      resolve("xiong");
-    });
-  },
-}))
-  .then()
-  .then()
-  .then((data) => {
-    console.log(data); //2
-  });
-console.log(1);
-
-// p.then((data) => {
-//   return 2; //返回一个普通值
-// }).then((data) => {
-//   console.log(data); //输出2
-// });
-
 module.exports = {
   resolved: function (value) {
     return new Promise(function (resolve) {
