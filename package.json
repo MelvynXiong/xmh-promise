@@ -1,5 +1,5 @@
 {
-  "name": "@xmh/promise",
+  "name": "@ioe/promise",
   "version": "1.0.0",
   "description": "符合Promises/A+规范的promise实现",
   "main": "promise.js",
